@@ -1,0 +1,42 @@
+{
+  "model_path": "best.pt",
+  "confidence_thresholds": {
+    "oil_can": 0.4,
+    "bunk_hole": 0.35
+  },
+  "camera_config": {
+    "rtsp_timeout_ms": 5000,
+    "buffer_size": 1,
+    "default_fps": 30,
+    "max_reconnect_attempts": 10,
+    "reconnect_backoff_max": 60
+  },
+  "relay_config": {
+    "max_retries": 3,
+    "retry_delay": 0.5
+  },
+  "watchdog_timeout": 15,
+  "machines": [
+    {
+      "machine_id": 1,
+      "name": "Machine 1",
+      "camera_source": "rtsp://admin:admin123@192.168.1.64:554/Streaming/Channels/101",
+      "relay_start_channel": 6,
+      "enabled": true
+    },
+    {
+      "machine_id": 2,
+      "name": "Machine 2",
+      "camera_source": "rtsp://admin:admin123@192.168.1.65:554/Streaming/Channels/101",
+      "relay_start_channel": 9,
+      "enabled": true
+    },
+    {
+      "machine_id": 3,
+      "name": "Machine 3",
+      "camera_source": "rtsp://admin:admin123@192.168.1.66:554/Streaming/Channels/101",
+      "relay_start_channel": 12,
+      "enabled": true
+    }
+  ]
+}
