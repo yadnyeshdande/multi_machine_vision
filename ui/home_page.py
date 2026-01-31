@@ -1,6 +1,7 @@
 """
-Home Dashboard - Overview of all machines
-Shows status, last fault, relay assignments
+Home Page - Machine Dashboard
+Shows all machines with navigation buttons
+NO DIRECT TAB ACCESS - Navigate via machine buttons
 """
 import logging
 from PyQt5.QtWidgets import *
@@ -16,7 +17,6 @@ class MachineStatusCard(QGroupBox):
     
     monitor_clicked = pyqtSignal(int)  # machine_id
     train_clicked = pyqtSignal(int)
-    settings_clicked = pyqtSignal(int)
     
     def __init__(self, machine_id, machine_name, relay_config):
         super().__init__(machine_name)
@@ -91,21 +91,35 @@ class MachineStatusCard(QGroupBox):
         # Buttons
         btn_layout = QVBoxLayout()
         
-        monitor_btn = QPushButton("Monitor")
+        monitor_btn = QPushButton("🖥 Monitor")
+        monitor_btn.setMinimumHeight(35)
+        monitor_btn.setStyleSheet("font-weight: bold;")
         monitor_btn.clicked.connect(lambda: self.monitor_clicked.emit(self.machine_id))
         btn_layout.addWidget(monitor_btn)
         
-        train_btn = QPushButton("Train Boundaries")
+        train_btn = QPushButton("🎯 Train Boundaries")
+        train_btn.setMinimumHeight(35)
         train_btn.clicked.connect(lambda: self.train_clicked.emit(self.machine_id))
         btn_layout.addWidget(train_btn)
-        
-        settings_btn = QPushButton("Settings")
-        settings_btn.clicked.connect(lambda: self.settings_clicked.emit(self.machine_id))
-        btn_layout.addWidget(settings_btn)
         
         layout.addLayout(btn_layout)
         
         self.setLayout(layout)
+        self.setStyleSheet("""
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #ccc;
+                border-radius: 8px;
+                margin-top: 10px;
+                padding: 15px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top center;
+                padding: 5px 10px;
+                background-color: white;
+            }
+        """)
     
     def _create_separator(self):
         line = QFrame()
@@ -158,11 +172,11 @@ class MachineStatusCard(QGroupBox):
 class HomePage(QWidget):
     """
     Home dashboard showing overview of all machines
+    Machine buttons navigate to Detection/Training pages
     """
     
     monitor_machine = pyqtSignal(int)  # machine_id
     train_machine = pyqtSignal(int)
-    settings_machine = pyqtSignal(int)
     
     def __init__(self):
         super().__init__()
@@ -173,14 +187,17 @@ class HomePage(QWidget):
         main_layout = QVBoxLayout()
         
         # Title
-        title = QLabel("Multi-Machine Vision System")
+        title = QLabel("Multi-Machine Industrial Vision System")
         title.setStyleSheet("font-size: 24px; font-weight: bold; padding: 10px;")
         title.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title)
         
         # System status
         self.system_status = QLabel("System Initializing...")
-        self.system_status.setStyleSheet("padding: 5px; background-color: #f0f0f0;")
+        self.system_status.setStyleSheet(
+            "padding: 10px; background-color: #f0f0f0; "
+            "border-radius: 5px; font-size: 14px;"
+        )
         self.system_status.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(self.system_status)
         
@@ -197,14 +214,20 @@ class HomePage(QWidget):
         # Global controls
         control_layout = QHBoxLayout()
         
-        self.start_all_btn = QPushButton("Start All Machines")
-        self.start_all_btn.setMinimumHeight(40)
-        self.start_all_btn.setStyleSheet("background-color: green; color: white; font-weight: bold;")
+        self.start_all_btn = QPushButton("▶ Start All Machines")
+        self.start_all_btn.setMinimumHeight(50)
+        self.start_all_btn.setStyleSheet(
+            "background-color: #4CAF50; color: white; "
+            "font-weight: bold; font-size: 14px; border-radius: 5px;"
+        )
         control_layout.addWidget(self.start_all_btn)
         
-        self.stop_all_btn = QPushButton("Stop All Machines")
-        self.stop_all_btn.setMinimumHeight(40)
-        self.stop_all_btn.setStyleSheet("background-color: red; color: white; font-weight: bold;")
+        self.stop_all_btn = QPushButton("⏹ Stop All Machines")
+        self.stop_all_btn.setMinimumHeight(50)
+        self.stop_all_btn.setStyleSheet(
+            "background-color: #F44336; color: white; "
+            "font-weight: bold; font-size: 14px; border-radius: 5px;"
+        )
         self.stop_all_btn.setEnabled(False)
         control_layout.addWidget(self.stop_all_btn)
         
@@ -219,7 +242,6 @@ class HomePage(QWidget):
         # Connect signals
         card.monitor_clicked.connect(self.monitor_machine)
         card.train_clicked.connect(self.train_machine)
-        card.settings_clicked.connect(self.settings_machine)
         
         # Add to grid (3 columns)
         row = (machine_id - 1) // 3
@@ -244,7 +266,8 @@ class HomePage(QWidget):
         """Set system status message"""
         self.system_status.setText(status)
         self.system_status.setStyleSheet(
-            f"padding: 5px; background-color: #f0f0f0; color: {color}; font-weight: bold;"
+            f"padding: 10px; background-color: #f0f0f0; "
+            f"color: {color}; font-weight: bold; font-size: 14px; border-radius: 5px;"
         )
     
     def set_detection_running(self, running):
