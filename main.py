@@ -6,6 +6,7 @@ import sys
 import os
 from ultralytics import YOLO  # Ensure ultralytics is imported before other modules
 import logging
+import logging.handlers
 import traceback
 from datetime import datetime
 from PyQt5.QtWidgets import *
@@ -22,22 +23,49 @@ from core.relay_manager import RelayManager
 from core.machine_controller import MachineController
 from ui.home_page import HomePage
 from ui.detection_page import DetectionPage
-from ui.training_page_2 import TrainingPage
+from ui.training_page import TrainingPage
 from config.config_manager import ConfigManager
 
-# Logging setup
+# Create logs directory
+LOGS_DIR = "logs"
+os.makedirs(LOGS_DIR, exist_ok=True)
+
+# Logging setup with QueueHandler for non-blocking async logging
+log_filename = os.path.join(LOGS_DIR, f'multi_machine_{datetime.now().strftime("%Y%m%d")}.log')
+
+# Create handlers
+file_handler = logging.FileHandler(log_filename, encoding='utf-8')
+console_handler = logging.StreamHandler()
+
+# Create formatters
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# Use QueueHandler for async logging (reduces main thread load)
+queue = logging.handlers.QueueHandler.queue_class(-1)  # Unlimited queue
+queue_handler = logging.handlers.QueueHandler(queue)
+
+# QueueListener runs in separate thread
+listener = logging.handlers.QueueListener(
+    queue, 
+    file_handler, 
+    console_handler,
+    respect_handler_level=True
+)
+
+# Configure root logger
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(
-            f'multi_machine_{datetime.now().strftime("%Y%m%d")}.log',
-            encoding='utf-8'
-        ),
-        logging.StreamHandler()
-    ]
+    handlers=[queue_handler]
 )
+
+# Start the listener thread
+listener.start()
+
 logger = logging.getLogger(__name__)
+logger.info(f"Logging initialized - Log file: {log_filename}")
+logger.info("Logging running in separate thread for optimal performance")
 
 
 class MultiMachineApp(QMainWindow):
@@ -582,7 +610,7 @@ class MultiMachineApp(QMainWindow):
     
     def view_logs(self):
         """View log file"""
-        log_file = f'multi_machine_{datetime.now().strftime("%Y%m%d")}.log'
+        log_file = os.path.join(LOGS_DIR, f'multi_machine_{datetime.now().strftime("%Y%m%d")}.log')
         if os.path.exists(log_file):
             if sys.platform == "win32":
                 os.startfile(log_file)
@@ -643,6 +671,9 @@ class MultiMachineApp(QMainWindow):
         logger.info("APPLICATION SHUTDOWN")
         logger.info("="*60)
         
+        # Stop the logging listener thread
+        listener.stop()
+        
         event.accept()
 
 
@@ -667,6 +698,10 @@ def main():
     return_code = app.exec_()
     
     logger.info(f"Application exited with code {return_code}")
+    
+    # Ensure listener stops
+    listener.stop()
+    
     sys.exit(return_code)
 
 
