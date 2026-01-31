@@ -43,12 +43,13 @@ file_handler.setFormatter(formatter)
 console_handler.setFormatter(formatter)
 
 # Use QueueHandler for async logging (reduces main thread load)
-queue = logging.handlers.QueueHandler.queue_class(-1)  # Unlimited queue
-queue_handler = logging.handlers.QueueHandler(queue)
+import queue
+log_queue = queue.Queue(-1)  # Unlimited queue
+queue_handler = logging.handlers.QueueHandler(log_queue)
 
 # QueueListener runs in separate thread
 listener = logging.handlers.QueueListener(
-    queue, 
+    log_queue, 
     file_handler, 
     console_handler,
     respect_handler_level=True
