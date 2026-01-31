@@ -4,3 +4,34 @@ __pycache__/
 *.pyc
 *.log
 logs
+# Logs folder
+logs/
+*.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model files (optional - uncomment if you don't want to track models)
+# models/*.pt
+
+# Config files with sensitive data (optional)
+# config/machines_config.json
